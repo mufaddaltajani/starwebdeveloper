@@ -1,0 +1,18 @@
+# Dependencies
+/vendor/
+node_modules/
+
+# Environment configurations (Never commit secrets!)
+.env
+
+# Database files (We don't want to overwrite production data with local data)
+/database/*.sqlite
+/database/*.sqlite-journal
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE configurations
+.idea/
+.vscode/

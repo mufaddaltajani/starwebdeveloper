@@ -1,0 +1,4 @@
+http://localhost
+http://localhost/about
+
+docker compose up -d --build
