@@ -1,0 +1,37 @@
+/* public/assets/css/main.css */
+
+/* 1. CSS Variables: The Single Source of Truth */
+:root {
+  --color-primary: #0056b3;
+  --color-text: #333333;
+  --color-bg: #ffffff;
+  --font-base: system-ui, -apple-system, sans-serif;
+  --spacing-md: 1.5rem;
+  --radius: 8px;
+}
+
+/* 2. Modern Reset (Mobile First) */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-base);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 3. Base Elements */
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-md);
+}
+
+/* We will add specific UI components here as we build them */

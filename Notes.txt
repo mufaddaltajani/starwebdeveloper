@@ -1,5 +1,6 @@
 http://localhost
 http://localhost/about
+http://localhost/login
 
 docker compose up -d --build
 docker compose down
@@ -8,7 +9,11 @@ rm database/app.sqlite
 
 docker compose exec app php database/migrate.php
 
+docker compose exec app php database/seed_admin.php
+starwebdevelopers5@gmail.com
+sEnGaL_479
+
 git add .
-git commit -m ""
+git commit -m "Base model added"
 git branch -M main
 git push -u origin main

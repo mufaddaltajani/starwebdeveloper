@@ -7,6 +7,8 @@
     
     <title><?= htmlspecialchars($meta['title'] ?? 'Star Web Developer') ?></title>
     <meta name="description" content="<?= htmlspecialchars($meta['description'] ?? 'Expert Web Development Services') ?>">
+
+    <link rel="stylesheet" href="/assets/css/main.css">
     
     <script type="application/ld+json">
     {
@@ -18,8 +20,7 @@
       "areaServed": ["IN", "US", "GB", "CA", "AU", "EU"]
     }
     </script>
-    
-    <link rel="stylesheet" href="/assets/style.css">
+    <script type="module" src="/assets/js/app.js"></script>
 </head>
 <body>
     <main>
