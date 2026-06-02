@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+// Force the entire application into Coordinated Universal Time
+date_default_timezone_set('UTC');
 
 // 1. Load the PSR-4 Autoloader
 // From here on, we NEVER need to use require_once again.
@@ -20,18 +22,15 @@ session_start();
 use App\Router;
 use App\Controllers\AuthController;
 use App\Controllers\AdminController;
+use App\Controllers\HomeController;
 
 // 2. Instantiate our new Router
 $router = new Router();
 
-// 3. Define our application routes
-$router->get('/', function () {
-    return "<h1>Welcome to the Star Web Developer.</h1><p>Routing is working perfectly.</p>";
-});
-
-$router->get('/about', function () {
-    return "<h1>About Us</h1><p>We are building a scalable, accessible platform natively on Docker.</p>";
-});
+// --- PUBLIC ROUTES ---
+$router->get('/', [HomeController::class, 'index']);
+$router->get('/about', [HomeController::class, 'about']);
+$router->get('/contact', [HomeController::class, 'contact']);
 
 // Authentication Routes
 $router->get('/login', [AuthController::class, 'showLoginForm']);

@@ -22,7 +22,7 @@ class AuthController extends Controller
         return $this->render('login', [
             'title' => 'Admin Login | Star Web Developer',
             'description' => 'Secure administrator login gateway.'
-        ]);
+        ], layout:"auth_layout");
     }
 
     /**
