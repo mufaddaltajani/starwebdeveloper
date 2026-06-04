@@ -31,6 +31,7 @@ $router = new Router();
 $router->get('/', [HomeController::class, 'index']);
 $router->get('/about', [HomeController::class, 'about']);
 $router->get('/contact', [HomeController::class, 'contact']);
+$router->post('/contact', [HomeController::class, 'submitContact']);
 
 // Authentication Routes
 $router->get('/login', [AuthController::class, 'showLoginForm']);

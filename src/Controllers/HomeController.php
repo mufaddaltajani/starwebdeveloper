@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Services\BrevoMailer;
+use App\Services\RateLimiter;
+
 class HomeController extends Controller
 {
     /**
@@ -30,6 +33,9 @@ class HomeController extends Controller
             'meta' => [
                 'title' => 'About Us | StarWebDev',
                 'description' => 'Learn about our engineering standards and global mission.'
+            ],
+            'scripts' => [
+                '/assets/js/form-validation.js' // It will load strictly on this page
             ]
         ]);
     }
@@ -43,7 +49,62 @@ class HomeController extends Controller
             'meta' => [
                 'title' => 'Contact Us | StarWebDev',
                 'description' => 'Get in touch to start your custom web or AI project today.'
-            ]
+            ],
+            'scripts' => [
+                '/assets/js/form-validation.js',
+                '/assets/js/contact.js',
+            ],
         ]);
+    }
+
+    public function submitContact(): void
+    {
+        $ipAddress = $_SERVER['REMOTE_ADDR'];
+        $rateLimiter = new RateLimiter();
+
+        if ($rateLimiter->isBlocked("contact_$ipAddress", 3)) {
+            $_SESSION['error'] = 'Too many requests. Please try again later.';
+            header('Location: /contact');
+            exit;
+        }
+
+        // Sanitize Input
+        $data = [
+            'name' => trim(htmlspecialchars($_POST['name'] ?? '')),
+            'email' => trim(filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL)),
+            'phone' => trim(htmlspecialchars($_POST['phone'] ?? '')),
+            'message' => trim(htmlspecialchars($_POST['message'] ?? ''))
+        ];
+
+        // Validation 1: Empty Fields
+        if (empty($data['name']) || empty($data['email']) || empty($data['phone']) || empty($data['message'])) {
+            $rateLimiter->recordFailedAttempt("contact_$ipAddress", 3);
+            $_SESSION['error'] = 'All fields are strictly required.';
+            $_SESSION['old_input'] = $data; // Flash the data
+            header('Location: /contact');
+            exit;
+        }
+
+        // Validation 2: Email Format
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $rateLimiter->recordFailedAttempt("contact_$ipAddress", 3);
+            $_SESSION['error'] = 'Please provide a valid email address.';
+            $_SESSION['old_input'] = $data; // Flash the data
+            header('Location: /contact');
+            exit;
+        }
+
+        // Send Email
+        $mailer = new BrevoMailer();
+        if ($mailer->sendContactAlert($data)) {
+            $_SESSION['success'] = 'Your message has been sent successfully. We will contact you shortly.';
+            unset($_SESSION['old_input']); // Clear input on success
+        } else {
+            $_SESSION['error'] = 'An error occurred while sending your message. Please try again later.';
+            $_SESSION['old_input'] = $data; // Flash the data
+        }
+
+        header('Location: /contact');
+        exit;
     }
 }

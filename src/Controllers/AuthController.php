@@ -5,70 +5,125 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\User;
+use App\Services\RateLimiter;
+use App\Config;
 
 class AuthController extends Controller
 {
-    /**
-     * Render the login form.
-     */
     public function showLoginForm(): string
     {
-        // If the user is already logged in, redirect them away from the login page
         if (isset($_SESSION['user_id'])) {
             header('Location: /admin/dashboard');
             exit;
         }
 
         return $this->render('login', [
-            'title' => 'Admin Login | Star Web Developer',
-            'description' => 'Secure administrator login gateway.'
-        ], layout:"auth_layout");
+            'meta' => [
+                'title' => 'Log In | Star Web Developer',
+                'description' => 'Secure Admin Access'
+            ], 
+            'scripts' => [
+                '/assets/js/form-validation.js',
+                // Cloudflare Turnstile API Script
+                'https://challenges.cloudflare.com/turnstile/v0/api.js' 
+            ],
+            'turnstile_site_key' => Config::get('TURNSTILE_SITE_KEY', ''),
+        ], 'auth_layout');
     }
 
-    /**
-     * Process the login POST request.
-     */
     public function login(): void
     {
-        // 1. Sanitize input
-        $email = trim(strtolower($_POST['email'] ?? ''));
-        $password = $_POST['password'] ?? '';
+        $ipAddress = $_SERVER['REMOTE_ADDR'];
+        $rateLimiter = new RateLimiter();
 
-        // 2. Validate input presence
-        if (empty($email) || empty($password)) {
-            $_SESSION['error'] = 'Email and password are required.';
+        // 1. Check Brute Force Ban FIRST (Saves CPU and network calls)
+        if ($rateLimiter->isBlocked($ipAddress)) {
+            $_SESSION['error'] = 'Too many failed attempts. Please try again in 15 minutes.';
             header('Location: /login');
             exit;
         }
 
-        // 3. Find the user in the database
+        // 2. Cloudflare Turnstile Verification
+        $turnstileResponse = $_POST['cf-turnstile-response'] ?? '';
+        $turnstileSecret = Config::get('TURNSTILE_SECRET_KEY', '');
+
+        // Skip validation if you are testing locally without internet, but enable in production
+        if (!empty($turnstileResponse)) {
+            $verifyUrl = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+            $data = [
+                'secret' => $turnstileSecret,
+                'response' => $turnstileResponse,
+                'remoteip' => $ipAddress
+            ];
+
+            $options = [
+                'http' => [
+                    'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                    'method'  => 'POST',
+                    'content' => http_build_query($data)
+                ]
+            ];
+            
+            $context  = stream_context_create($options);
+            $result = file_get_contents($verifyUrl, false, $context);
+            $outcome = json_decode($result ?? '', true);
+
+            if (!$outcome || empty($outcome['success'])) {
+                $this->failLogin($rateLimiter, $ipAddress, 'Security check failed. Please try again.');
+            }
+        } else {
+            // Require Turnstile response
+            $this->failLogin($rateLimiter, $ipAddress, 'Please complete the security check.');
+        }
+
+        // 3. Sanitize input
+        $email = trim(strtolower($_POST['email'] ?? ''));
+        $password = $_POST['password'] ?? '';
+
+        if (empty($email) || empty($password)) {
+            $this->failLogin($rateLimiter, $ipAddress, 'Email and password are required.', $email);
+        }
+
+        // 4. Database Verification
         $userModel = new User();
         $user = $userModel->findByEmail($email);
 
-        // 4. Secure Password Verification
-        // We never compare passwords directly. We use password_verify() to compare
-        // the plain-text input against the Argon2id hash in the database safely.
         if ($user && password_verify($password, $user['password'])) {
+            // Success: Clear failed attempts
+            $rateLimiter->clearAttempts($ipAddress);
             
-            // 5. Prevent Session Fixation attacks by regenerating the ID upon login
             session_regenerate_id(true);
-            
-            // 6. Set authenticated session variables
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_name'] = $user['name'];
             
-            // Clear any old errors
             unset($_SESSION['error']);
+            unset($_SESSION['old_email']);
             
-            // Redirect to the protected area
             header('Location: /admin/dashboard');
             exit;
         }
 
-        // 7. Generic Error Message (Security Best Practice)
-        // Never tell the user "Email not found" or "Incorrect password". 
-        // That allows attackers to enumerate registered emails. Always use a generic message.
-        $_SESSION['error'] = 'Invalid credentials. Please try again.';
+        // 5. Authentication Failed
+        $this->failLogin($rateLimiter, $ipAddress, 'Invalid credentials. Please try again.', $email);
+    }
+
+    /**
+     * Helper method to handle failed logins cleanly.
+     */
+    private function failLogin(RateLimiter $rateLimiter, string $ipAddress, string $message, string $oldEmail = ''): void
+    {
+        // Record the attempt. If it returns false, the 15 min ban has been triggered.
+        if (!$rateLimiter->recordFailedAttempt($ipAddress)) {
+            $_SESSION['error'] = 'Too many failed attempts. Please try again in 15 minutes.';
+        } else {
+            $_SESSION['error'] = $message;
+        }
+
+        // Flash the old email back to the session so the user doesn't have to retype it
+        if (!empty($oldEmail)) {
+            $_SESSION['old_email'] = $oldEmail;
+        }
+
         header('Location: /login');
         exit;
     }

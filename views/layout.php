@@ -28,6 +28,13 @@
 
     <link rel="stylesheet" href="/assets/css/main.css">
     <script type="module" src="/assets/js/app.js"></script>
+
+    <?php if (isset($scripts) && is_array($scripts)): ?>
+        <?php foreach ($scripts as $script): ?>
+            <script type="module" src="<?= htmlspecialchars($script) ?>"></script>
+        <?php endforeach; ?>
+    <?php endif; ?>
+    
 </head>
 <body>
     <header class="site-header">

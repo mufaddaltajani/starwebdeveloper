@@ -1,5 +1,6 @@
 http://localhost
 http://localhost/about
+http://localhost/contact
 http://localhost/login
 
 docker compose up -d --build
@@ -12,6 +13,14 @@ docker compose exec app php database/migrate.php
 docker compose exec app php database/seed_admin.php
 starwebdevelopers5@gmail.com
 sEnGaL_479
+
+Note on Cloudflare Keys
+The 1x00... keys I provided in the code above are Cloudflare's official Testing Keys. They will automatically generate a successful verification for you locally without needing to set up an account immediately.
+When you deploy to production:
+- Go to your Cloudflare Dashboard -> Turnstile.
+- Add your domain.
+- Replace the data-sitekey in login.php with the generated Site Key.
+- Replace the $turnstileSecret in AuthController.php with the generated Secret Key.
 
 git add .
 git commit -m "Admin auth added"

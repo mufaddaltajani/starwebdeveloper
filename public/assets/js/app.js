@@ -1,5 +1,3 @@
-// public/assets/js/app.js
-
 document.addEventListener("DOMContentLoaded", () => {
   // 1. Mobile Menu Toggle
   const menuToggle = document.querySelector(".mobile-menu-toggle");
