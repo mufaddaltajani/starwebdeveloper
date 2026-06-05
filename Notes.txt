@@ -23,6 +23,6 @@ When you deploy to production:
 - Replace the $turnstileSecret in AuthController.php with the generated Secret Key.
 
 git add .
-git commit -m "Admin auth added"
+git commit -m "Contact page added"
 git branch -M main
 git push -u origin main
