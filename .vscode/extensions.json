@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "bmewburn.vscode-intelephense-client", // Strict PHP language server
+    "ms-azuretools.vscode-docker", // Docker integration
+    "esbenp.prettier-vscode", // Frontend formatting (CSS/JS)
+    "usernamehw.errorlens" // Highlights errors inline before running code
+  ]
+}

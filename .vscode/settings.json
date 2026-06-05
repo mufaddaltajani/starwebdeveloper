@@ -1,0 +1,56 @@
+{
+  // --- Editor Standards ---
+  "editor.formatOnSave": true,
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+
+  // --- File Associations (Treat .php as HTML sometimes for views) ---
+  "files.associations": {
+    "*.php": "php"
+  },
+
+  // --- PHP Intelephense (Strict Mode) ---
+  "intelephense.environment.phpVersion": "8.3.0",
+  "intelephense.diagnostics.undefinedTypes": true,
+  "intelephense.diagnostics.undefinedFunctions": true,
+
+  // Here is where we automate the Redis fix for the whole team!
+  "intelephense.stubs": [
+    "apache",
+    "bcmath",
+    "bz2",
+    "calendar",
+    "Core",
+    "curl",
+    "date",
+    "filter",
+    "hash",
+    "json",
+    "mbstring",
+    "pcre",
+    "PDO",
+    "pdo_sqlite",
+    "Phar",
+    "readline",
+    "redis", // <-- Automated C-extension stub definition
+    "Reflection",
+    "session",
+    "SimpleXML",
+    "sockets",
+    "SPL",
+    "sqlite3",
+    "standard",
+    "superglobals",
+    "zlib"
+  ],
+
+  // --- Frontend Formatting ---
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}
